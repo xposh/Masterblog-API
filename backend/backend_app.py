@@ -16,49 +16,75 @@ def get_posts():
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
-    # 1. get data from frontend
+    # get data from frontend
     data = request.get_json()
 
-    # 2. Validierung: Fehlt Titel oder Inhalt?
+    # Validierung: Fehlt Titel oder Inhalt?
     if 'title' not in data or 'content' not in data:
         return jsonify({"error": "Missing title or content"}), 400
 
-    # 3. Neue ID =  (List length + 1)
+    #  Neue ID =  (List length + 1)
     new_id = len(POSTS) + 1
 
-    # 4. Create new dict.
+    # Create new dict.
     new_post = {
         "id": new_id,
         "title": data['title'],
         "content": data['content']
     }
 
-    # 5. In Liste speichern
+    # In Liste speichern
     POSTS.append(new_post)
 
-    # 6.  Status 201
+    # Status 201
     return jsonify(new_post), 201
 
 @app.route('/api/posts/<int:id>', methods=['DELETE'])
 def delete_post(id):
-    # 1. Post in der Liste suchen
+    # Post in der Liste suchen
     post_to_delete = None
     for post in POSTS:
         if post['id'] == id:
             post_to_delete = post
             break
 
-    # 2. Error Handling: In case the Post doesnt exist
+    # Error Handling: In case the Post doesnt exist
     if post_to_delete is None:
         return jsonify({"error": f"Post with id {id} not found"}), 404
 
-    # 3. Den Post aus der Liste entfernen
+    # Den Post aus der Liste entfernen
     POSTS.remove(post_to_delete)
 
 
     return jsonify({"message": f"Post with id {id} has been deleted successfully."}), 200
 
 
+@app.route('/api/posts/<int:id>', methods=['PUT'])
+def update_post(id):
+    # get data again
+    data = request.get_json()
+
+    # looking for post
+    post_to_update = None
+    for post in POSTS:
+        if post['id'] == id:
+            post_to_update = post
+            break
+
+    # If ID doesn't exist return (404)
+    if post_to_update is None:
+        return jsonify({"error": f"Post with id {id} not found"}), 404
+
+    # Wenn 'title' im JSON ist, nimm den neuen Wert, sonst behalte den alten
+    if 'title' in data:
+        post_to_update['title'] = data['title']
+
+    # Wenn 'content' im JSON ist, nimm den neuen Wert, sonst behalte den alten
+    if 'content' in data:
+        post_to_update['content'] = data['content']
+
+    #  Den aktualisierten Post zurückgeben (Status 200)
+    return jsonify(post_to_update), 200
 
 
 if __name__ == '__main__':
