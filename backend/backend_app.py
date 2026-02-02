@@ -43,7 +43,44 @@ def search_posts():
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    return jsonify(POSTS)
+    sort_field = request.args.get('sort')
+    sort_direction = request.args.get('direction')
+
+    # Kopie von der Liste erstellen (deine gewünschte Logik)
+    results = []
+    for post in POSTS:
+        results.append(post)
+
+    # Error: Validierung (Deine kombinierte Logik)
+    if sort_field is not None and sort_field != 'title' and sort_field != 'content':
+        return jsonify({"error": "Invalid sort field. Use 'title' or 'content'."}), 400
+
+    # 3. Nur sortieren, wenn ein gültiges Feld da ist
+    if sort_field is not None:
+        direction = 'asc' # Standardwert setzen
+
+        # Prüfung der Richtung nur, wenn sie mitgegeben wurde
+        if sort_direction == 'desc':
+            direction = 'desc'
+        elif sort_direction == 'asc':
+            direction = 'asc'
+        elif sort_direction is not None:
+            # User hat was getippt, aber es war weder asc noch desc
+            return jsonify({"error": "Invalid direction. Use 'asc' or 'desc'."}), 400
+
+        # Sortier-Funktion (Anweisung für die Liste)
+        def pick_field(item):
+            return item[sort_field].lower()
+
+        is_descending = False
+        if direction == 'desc':
+            is_descending = True
+
+        results.sort(key=pick_field, reverse=is_descending)
+
+    # Ergebnis auf "jsonisch(jasonify)"
+    return jsonify(results)
+
 
 @app.route('/api/posts', methods=['POST'])
 def add_post():
@@ -106,7 +143,7 @@ def update_post(id):
     if post_to_update is None:
         return jsonify({"error": f"Post with id {id} not found"}), 404
 
-    # Wenn 'title' im JSON ist, nimm den neuen Wert, sonst behalte den alten
+    # Wenn 'title' im JSON ist, den neuen Wert nehmen, sonst alten behalten.
     if 'title' in data:
         post_to_update['title'] = data['title']
 
