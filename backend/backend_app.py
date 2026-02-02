@@ -9,6 +9,37 @@ POSTS = [
     {"id": 2, "title": "Second post", "content": "This is the second post."},
 ]
 
+@app.route('/api/posts/search', methods=['GET'])
+def search_posts():
+    # Query-Parameter aus der URL extrahieren
+    search_title = request.args.get('title')
+    search_content = request.args.get('content')
+    #request.args.get(): Greift auf alles zu, was in der URL nach dem Fragezeichen
+    # steht (z. B. ?title=flask).
+    results = []
+
+    # Die Liste der Posts durchsuchen
+    for post in POSTS:
+        # Wir prüfen, ob der Titel-Suchbegriff im Titel des Posts vorkommt
+        # .lower() <--- or Case - Insensitivity. Immer lower annwenden wenn/damit die Suche nicht auf Groß-/Kleinschreibung achtet
+        title_match = True
+        if search_title:
+            if search_title.lower() not in post['title'].lower():
+                title_match = False
+
+        # Prüfen, ob der Inhalts-Suchbegriff im Content des Posts vorkommt
+        content_match = True
+        if search_content:
+            if search_content.lower() not in post['content'].lower():
+                content_match = False
+
+        # Wenn beides (sofern angegeben) passt, Post hinzugefügt
+        if title_match and content_match:
+            results.append(post)
+
+    # Ergebnis auf "jsonisch(jasonify)" (kann auch eine leere Liste sein)
+    return jsonify(results), 200
+
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
